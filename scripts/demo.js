@@ -1,19 +1,35 @@
 // Global scene object
-      var scene;
+var scene;
 
       // Global camera object
       var camera;
+      var squareMesh;
 
       // Initialize the scene
       initializeScene();
 
       // Render the scene (map the 3D world to the 2D scene)
-      renderScene();
+      (function() {
+          var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+          window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+          window.requestAnimationFrame = requestAnimationFrame;
+      })();
+
+      var start = null;
+
+      var d = document.getElementById("SomeElementYouWantToAnimate");
+
+      function step(timestamp) {
+          renderScene();
+        }
+
+    requestAnimationFrame(step);
+    renderScene();
 
       /**
        * Initialze the scene.
        */
-      function initializeScene(){
+       function initializeScene(){
         // Check whether the browser supports WebGL. If so, instantiate the hardware accelerated
         // WebGL renderer. For antialiasing, we have to enable it. The canvas renderer uses
         // antialiasing by default.
@@ -26,9 +42,9 @@
 
         // If its not supported, instantiate the canvas renderer to support all non WebGL
         // browsers
-        } else {
-          renderer = new THREE.CanvasRenderer();
-        }
+    } else {
+      renderer = new THREE.CanvasRenderer();
+  }
 
         // Set the background color of the renderer to black, with full opacity
         renderer.setClearColor(0x000000, 1);
@@ -46,7 +62,7 @@
 
         // Create the scene, in which all objects are stored (e. g. camera, lights,
         // geometries, ...)
-        scene = new THREE.Scene();
+scene = new THREE.Scene();
 
         // Now that we have a scene, we want to look into it. Therefore we need a camera.
         // Three.js offers three camera types:
@@ -96,7 +112,7 @@
         var triangleMaterial = new THREE.MeshBasicMaterial({
           color:0xFFFFFF,
           side:THREE.DoubleSide
-        });
+      });
 
         // Create a mesh and insert the geometry and the material. Translate the whole mesh
         // by -1.5 on the x axis and by 4 on the z axis. Finally add the mesh to the scene.
@@ -122,18 +138,22 @@
         var squareMaterial = new THREE.MeshBasicMaterial({
           color:0xFFFFFF,
           side:THREE.DoubleSide
-        });
+      });
 
         // Create a mesh and insert the geometry and the material. Translate the whole mesh
         // by 1.5 on the x axis and by 4 on the z axis and add the mesh to the scene.
-        var squareMesh = new THREE.Mesh(squareGeometry, squareMaterial);
-        squareMesh.position.set(1.5, 0.0, 4.0);
+        squareMesh = new THREE.Mesh(squareGeometry, squareMaterial);
+        squareMesh.position.set(1.5, 0, 4);
         scene.add(squareMesh);
-      }
+    }
 
       /**
        * Render the scene. Map the 3D world to the 2D screen.
        */
-      function renderScene(){
+       var i = 0;
+       function renderScene(){
+        i = i+ 0.001;
+        console.log(i)
+        squareMesh.position.set(1.5, 0, 4.0 + i);
         renderer.render(scene, camera);
-      }
+    }
