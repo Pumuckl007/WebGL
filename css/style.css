@@ -1,0 +1,80 @@
+body {
+	font-family: "Ubuntu" sans-serif;
+	background: #e9e9e9; /* Old browsers */
+}
+p {
+	color:black;
+	line-height: 1em;
+	margin-bottom: 1em;
+	text-align:justify;
+}
+h2.header {
+	color : #0c0c0c;
+	border-radius: 4px;
+	font-size: 275%;
+	font-weight: bold;
+	margin-bottom: 0.5em;
+}
+h2.subheader {
+	color : #0c0c0c;
+	border-radius: 4px;
+	font-size: 200%;
+	font-weight: bold;
+	margin-bottom: 0.5em;
+}
+button {
+	border-radius: 10px;
+}
+.menubar {
+	background-color: #0000bb;
+	border-radius: 0 0 5px 5px;
+	padding: 0.5em 0 0.5em 0;
+	margin-bottom: 2em;
+}
+.button {
+	text-decoration: none;
+	font-size: 200%;
+	padding: 0.2em 1em;
+	background-color: green;
+	color: white;
+	border-radius: 6px;
+}
+.subbutton {
+	text-decoration: none;
+	font-size: 120%;
+	padding: 0.1em 0.6em;
+	background-color: purple;
+	color: white;
+	border-radius: 6px;
+}
+.button:hover {
+	background-color: #00c02a;
+}
+.subbutton:hover {
+	background-color: #aA38a6;
+}
+.cta {
+	margin-bottom: 1.3em;
+}
+.border {
+	border: 5px solid #fdfdfd;
+	display: inline-block;
+	border-radius: 4px;
+}
+.outerborder {
+	display: inline-block;
+	box-shadow: 10px 10px 5px #a8a8a8;
+	margin-bottom: 2em;
+}
+.bar {
+	text-align: center;
+}
+.margin {
+	width: 750px;
+	margin: auto;
+}
+.link {
+	text-decoration: underline;
+	color: blue;
+	font-size: 60%;
+}
