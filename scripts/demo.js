@@ -97,7 +97,7 @@ function PinaCollada(modelname, scale) {
     var loader = new THREE.ColladaLoader();
     var localObject;
     loader.options.convertUpAxis = true;
-    loader.load( 'models/'+modelname+'.dae', function colladaReady( collada ) {
+    loader.load( 'WebGL/models/'+modelname+'.dae', function colladaReady( collada ) {
         scene.add(collada.scene);
         blenderShape = collada.scene;
         localObject = collada.scene;
