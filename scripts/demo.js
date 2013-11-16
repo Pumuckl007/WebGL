@@ -47,6 +47,8 @@ function initializeScene(){
 
   // Set the renderers size to the content areas size
   renderer.setSize(canvasWidth, canvasHeight);
+  renderer.shadowMapEnabled = true;
+  renderer.shadowMapSoft = true;
 
   // Get the DIV element from the HTML document by its ID and append the renderers DOM
   // object to it
@@ -77,6 +79,7 @@ function initializeScene(){
   // After definition, the camera has to be added to the scene.
   camera = new THREE.PerspectiveCamera(45, canvasWidth / canvasHeight, 1, 100);
   camera.position.set(0, 0, 10);
+  camera.rotation.order = "YXZ";
   camera.lookAt(scene.position);
   scene.add(camera);
 
@@ -84,10 +87,27 @@ function initializeScene(){
   window.object1 = PinaCollada('test', 1);
     scene.add(window.object1);
 
+
+  var groundGeometry = new THREE.Geometry();
+  groundGeometry.vertices.push(new THREE.Vector3(-100,-1,-100));
+  groundGeometry.vertices.push(new THREE.Vector3(100,-1,-100));
+  groundGeometry.vertices.push(new THREE.Vector3(-100,-1,100));
+  groundGeometry.vertices.push(new THREE.Vector3(100,-1,100));
+  groundGeometry.faces.push(new THREE.Face3(0,2,1));
+  groundGeometry.faces.push(new THREE.Face3(2,3,1));
+  groundGeometry.computeFaceNormals();
+  var groundMaterial = new THREE.MeshBasicMaterial({color: 0xff0000});
+  var ground = new THREE.Mesh(groundGeometry, groundMaterial)
+  ground.castShadow = true;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
   //add light
   light1 = new THREE.DirectionalLight(0xffffff);
-  light1.position.set(1, 1, 1).normalize();
-  light1.castShadiw = true;
+  light1.position.set(10, 10, 10).normalize();
+  light1.castShadow = true;
+  light1.shadowDarkness = 0.5;
+  light1.shadowCameraVisible = true;
   light1.color.setHex(0xEDF4F5);
   scene.add(light1);
   var ambientLight = new THREE.AmbientLight(0x202020);
@@ -100,6 +120,8 @@ function PinaCollada(modelname, scale) {
     loader.load( 'models/'+modelname+'.dae', function colladaReady( collada ) {
         scene.add(collada.scene);
         blenderShape = collada.scene;
+        blenderShape.castShadow = true;
+        blenderShape.receiveShadow = false;
         localObject = collada.scene;
         localObject.scale.x = localObject.scale.y = localObject.scale.z = scale;
         localObject.updateMatrix();
