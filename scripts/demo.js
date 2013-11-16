@@ -3,24 +3,16 @@ var scene;
 
 // Global camera object
 var camera;
-var squareMesh;
+var blenderShape;
+var light1;
 
 // Initialize the scene
 initializeScene();
 
 // Render the scene (map the 3D world to the 2D scene)
-(function() {
-  var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
-  window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-  window.requestAnimationFrame = requestAnimationFrame;
-})();
-
-var start = null;
-
-var d = document.getElementById("SomeElementYouWantToAnimate");
-
 function step(timestamp) {
   renderScene();
+  requestAnimationFrame(step);
 }
 
 requestAnimationFrame(step);
@@ -88,72 +80,39 @@ function initializeScene(){
   camera.lookAt(scene.position);
   scene.add(camera);
 
-  // Create the triangle (or any arbitrary geometry).
-  // 1. Instantiate the geometry object
-  // 2. Add the vertices
-  // 3. Define the faces by setting the vertices indices
-  var triangleGeometry = new THREE.Geometry();
-  triangleGeometry.vertices.push(new THREE.Vector3( 0.0,  1.0, 0.0));
-  triangleGeometry.vertices.push(new THREE.Vector3(-1.0, -1.0, 0.0));
-  triangleGeometry.vertices.push(new THREE.Vector3( 1.0, -1.0, 0.0));
-  triangleGeometry.faces.push(new THREE.Face3(0, 1, 2));
-
-  // To color the surface, a material has to be created. If all faces have the same color,
-  // the THREE.MeshBasicMaterial fits our needs. It offers a lot of attributes (see
-  // https://github.com/mrdoob/three.js/blob/master/src/materials/MeshBasicMaterial.js)
-  // from which we need in this lesson only 'color'.
-
-  // Create a white basic material and activate the 'doubleSided' attribute to force the
-  // rendering of both sides of each face (front and back). This prevents the so called
-  // 'backface culling'. Usually, only the side is rendered, whose normal vector points
-  // towards the camera. The other side is not rendered (backface culling). But this
-  // performance optimization sometimes leads to wholes in the surface. When this happens
-  // in your surface, simply set 'doubleSided' to 'true'.
-  var triangleMaterial = new THREE.MeshBasicMaterial({
-    color:0xFFFFFF,
-    side:THREE.DoubleSide
-  });
-
-  // Create a mesh and insert the geometry and the material. Translate the whole mesh
-  // by -1.5 on the x axis and by 4 on the z axis. Finally add the mesh to the scene.
-  var triangleMesh = new THREE.Mesh(triangleGeometry, triangleMaterial);
-  triangleMesh.position.set(-1.5, 0.0, 4.0);
-  scene.add(triangleMesh);
-
-  // The creation of the square is done in the same way as the triangle, except of the
-  // face definition. Instead of using THREE.Face3, we define a face with four vertices:
-  // THREE.Face4.
-  // 1. Instantiate the geometry object
-  // 2. Add the vertices
-  // 3. Define the faces by setting the vertices indices
-  var squareGeometry = new THREE.Geometry();
-  squareGeometry.vertices.push(new THREE.Vector3(-1.0,  1.0, 0.0));
-  squareGeometry.vertices.push(new THREE.Vector3( 1.0,  1.0, 0.0));
-  squareGeometry.vertices.push(new THREE.Vector3( 1.0, -1.0, 0.0));
-  squareGeometry.vertices.push(new THREE.Vector3(-1.0, -1.0, 0.0));
-  squareGeometry.faces.push(new THREE.Face3(0, 1, 2));
-  squareGeometry.faces.push(new THREE.Face3(0, 3, 2));
-
-  // Create a white basic material and activate the 'doubleSided' attribute.
-  var squareMaterial = new THREE.MeshBasicMaterial({
-    color:0xFFFFFF,
-    side:THREE.DoubleSide
-  });
-
-  // Create a mesh and insert the geometry and the material. Translate the whole mesh
   // by 1.5 on the x axis and by 4 on the z axis and add the mesh to the scene.
-  squareMesh = new THREE.Mesh(squareGeometry, squareMaterial);
-  squareMesh.position.set(1.5, 0, 4);
-  scene.add(squareMesh);
-}
+  window.object1 = PinaCollada('test', 1);
+    scene.add(window.object1);
 
+  //add light
+  light1 = new THREE.DirectionalLight(0xffffff);
+  light1.position.set(1, 1, 1).normalize();
+  light1.castShadiw = true;
+  light1.color.setHex(0xEDF4F5);
+  scene.add(light1);
+  var ambientLight = new THREE.AmbientLight(0x202020);
+  scene.add(ambientLight);
+}
+function PinaCollada(modelname, scale) {
+    var loader = new THREE.ColladaLoader();
+    var localObject;
+    loader.options.convertUpAxis = true;
+    loader.load( 'models/'+modelname+'.dae', function colladaReady( collada ) {
+        scene.add(collada.scene);
+        blenderShape = collada.scene;
+        localObject = collada.scene;
+        localObject.scale.x = localObject.scale.y = localObject.scale.z = scale;
+        localObject.updateMatrix();
+    } );
+    return localObject;
+}
 /**
  * Render the scene. Map the 3D world to the 2D screen.
  */
- var i = 0;
+ var k = 0;
  function renderScene(){
-  i = i+ 0.001;
-  console.log(i)
-  squareMesh.position.set(1.5, 0, 4.0 + i);
+    k += 0.02;
+  if(blenderShape != null)
+  blenderShape.rotation.y = -k/20;
   renderer.render(scene, camera);
 }
