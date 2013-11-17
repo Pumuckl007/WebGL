@@ -3,8 +3,10 @@ var scene;
 
 // Global camera object
 var camera;
-var blenderShape;
+var models = new Array(Math.pow(2, 32)-1);
+var callbacks = new Array(Math.pow(2, 32)-1);
 var light1;
+var object2;
 
 // Initialize the scene
 initializeScene();
@@ -21,7 +23,7 @@ renderScene();
 /**
  * Initialze the scene.
  */
-function initializeScene(){
+ function initializeScene(){
   // Check whether the browser supports WebGL. If so, instantiate the hardware accelerated
   // WebGL renderer. For antialiasing, we have to enable it. The canvas renderer uses
   // antialiasing by default.
@@ -34,9 +36,9 @@ function initializeScene(){
 
   // If its not supported, instantiate the canvas renderer to support all non WebGL
   // browsers
-  } else {
-    renderer = new THREE.CanvasRenderer();
-  }
+} else {
+  renderer = new THREE.CanvasRenderer();
+}
 
   // Set the background color of the renderer to black, with full opacity
   renderer.setClearColor(0x000000, 1);
@@ -77,16 +79,17 @@ function initializeScene(){
   // The camera is moved 10 units towards the z axis to allow looking to the center of
   // the scene.
   // After definition, the camera has to be added to the scene.
-  camera = new THREE.PerspectiveCamera(45, canvasWidth / canvasHeight, 1, 100);
+  camera = new THREE.PerspectiveCamera(45, canvasWidth / canvasHeight, 0.05, 100);
   camera.position.set(0, 0, 10);
   camera.rotation.order = "YXZ";
   camera.lookAt(scene.position);
   scene.add(camera);
 
   // by 1.5 on the x axis and by 4 on the z axis and add the mesh to the scene.
-  window.object1 = PinaCollada('test', 1);
-    scene.add(window.object1);
-
+  fiter = PinaCollada('fiterMrk1', 1, 0, 2);
+  callbacks[0] = function(model){
+    fiter = model;
+  }
 
   var groundGeometry = new THREE.Geometry();
   groundGeometry.vertices.push(new THREE.Vector3(-100,-1,-100));
@@ -113,28 +116,45 @@ function initializeScene(){
   var ambientLight = new THREE.AmbientLight(0x202020);
   scene.add(ambientLight);
 }
-function PinaCollada(modelname, scale) {
-    var loader = new THREE.ColladaLoader();
-    var localObject;
-    loader.options.convertUpAxis = true;
-    loader.load( 'models/'+modelname+'.dae', function colladaReady( collada ) {
-        scene.add(collada.scene);
-        blenderShape = collada.scene;
-        blenderShape.castShadow = true;
-        blenderShape.receiveShadow = false;
-        localObject = collada.scene;
-        localObject.scale.x = localObject.scale.y = localObject.scale.z = scale;
-        localObject.updateMatrix();
-    } );
-    return localObject;
+function PinaCollada(modelname, scale, index, subdivision) {
+  var manager = new THREE.LoadingManager();
+  var loader = new THREE.OBJLoader(manager);
+  var localObject;
+  loader.load( 'models/'+modelname+'.obj', function colladaReady( object ) {
+    scene.add(object[0]);
+    object2 = object;
+    var geometry = object[1][0];
+    console.log(geometry);
+
+    var modifier = new THREE.SubdivisionModifier(subdivision);
+
+    modifier.modify( geometry );
+    var texture = THREE.ImageUtils.loadTexture('textures/'+modelname+".png");
+    var material = new THREE.MeshBasicMaterial({map: texture});
+
+    var mesh = new THREE.Mesh( geometry, material );
+    scene.add( mesh );
+    mesh.scale.x = mesh.scale.y = mesh.scale.z = scale;
+    mesh.updateMatrix();
+    models[index] = mesh;
+    callback(index, mesh);
+  } );
+  return localObject;
 }
-/**
- * Render the scene. Map the 3D world to the 2D screen.
- */
  var k = 0;
  function renderScene(){
-    k += 0.02;
-  if(blenderShape != null)
-  blenderShape.rotation.y = -k/20;
+  k += 0.02;
+  if(fiter != null){
+    fiter.rotation.y = k;
+  }
   renderer.render(scene, camera);
 }
+function callback(index, object){
+  callbacks[index](object);
+}
+function loadShader(url) {
+  var req = new XMLHttpRequest();
+  req.open("GET", url, false);
+  req.send(null);
+  return (req.status == 200) ? req.responseText : null;
+};
