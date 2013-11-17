@@ -121,7 +121,6 @@ function PinaCollada(modelname, scale, index, subdivision) {
   var loader = new THREE.OBJLoader(manager);
   var localObject;
   loader.load( 'models/'+modelname+'.obj', function colladaReady( object ) {
-    scene.add(object[0]);
     object2 = object;
     var geometry = object[1][0];
     console.log(geometry);
@@ -129,10 +128,19 @@ function PinaCollada(modelname, scale, index, subdivision) {
     var modifier = new THREE.SubdivisionModifier(subdivision);
 
     modifier.modify( geometry );
-    var texture = THREE.ImageUtils.loadTexture('textures/'+modelname+".png");
-    var material = new THREE.MeshBasicMaterial({map: texture});
-
-    var mesh = new THREE.Mesh( geometry, material );
+    // var texture = THREE.ImageUtils.loadTexture('textures/'+modelname+".png");
+    // var material = new THREE.MeshBasicMaterial({map: texture});
+    var material = new THREE.MeshPhongMaterial({
+        // light
+        specular: '#a9fcff',
+        // intermediate
+        color: '#00abb1',
+        // dark
+        emissive: '#006063',
+        shininess: 100 
+      })
+    material.shading = THREE.FlatShading;
+    var mesh = new THREE.Mesh( geometry, material);
     scene.add( mesh );
     mesh.scale.x = mesh.scale.y = mesh.scale.z = scale;
     mesh.updateMatrix();

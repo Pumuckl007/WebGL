@@ -42,6 +42,7 @@ function init(){
       camera.position.y += y;
       camera.position.z += z;
     }
+    document.getElementById('engien').play();
   });
   document.addEventListener("click", function (e) {
     document.getElementById("WebGLCanvas").requestPointerLock = document.getElementById("WebGLCanvas").requestPointerLock ||
