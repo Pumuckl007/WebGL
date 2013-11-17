@@ -86,7 +86,7 @@ renderScene();
   scene.add(camera);
 
   // by 1.5 on the x axis and by 4 on the z axis and add the mesh to the scene.
-  fiter = PinaCollada('fiterMrk1', 1, 0, 2);
+  fiter = PinaCollada('fiterMrk1', 1, 0, 1);
   callbacks[0] = function(model){
     fiter = model;
   }
@@ -151,8 +151,8 @@ function PinaCollada(modelname, scale, index, subdivision) {
 }
  var k = 0;
  function renderScene(){
-  k += 0.02;
-  if(fiter != null){
+  if(fiter != null && rotate){
+      k += 0.02;
     fiter.rotation.y = k;
   }
   renderer.render(scene, camera);

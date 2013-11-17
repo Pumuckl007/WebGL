@@ -3,6 +3,7 @@ init();
 
 var pitch = 0;
 var yaw = 0;
+var rotate = false;
 
 function init(){
   document.addEventListener('keydown', function(event) {
@@ -49,7 +50,7 @@ function init(){
 			     document.getElementById("WebGLCanvas").mozRequestPointerLock ||
 			     document.getElementById("WebGLCanvas").webkitRequestPointerLock;
 	document.getElementById("WebGLCanvas").requestPointerLock();
-
+    rotate = !rotate;
   });
   document.addEventListener("mousemove", this.mouseMove, false);
   window.onresize = function(event) {
