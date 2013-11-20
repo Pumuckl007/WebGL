@@ -9,7 +9,14 @@
     <script src="../src/Face4.js"></script>
     <script src="../src/SubdivisionModifier.js"></script>
     <script src="../src/OBJLoader.js"></script>
-    <script src="../src/bullet.js"></script>
+    <script src="../src/physi.js"></script>
+    <script type="text/javascript">
+        
+      'use strict';
+
+      Physijs.scripts.worker = '../src/physijs_worker.js';
+      Physijs.scripts.ammo = '../src/ammo.js';
+    </script>
   </head>
   <body>
     <div class = "webglcanvas" id="WebGLCanvas"></div>

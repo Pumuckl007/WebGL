@@ -5,10 +5,8 @@ var scene;
 var camera;
 var models = new Array(Math.pow(2, 32)-1);
 var callbacks = new Array(Math.pow(2, 32)-1);
-var light1;
-var object2;
 var ground;
-var dynamicsWorld;
+var block_material;
 
 // Initialize the scene
 initializeScene();
@@ -26,6 +24,7 @@ renderScene();
  * Initialze the scene.
  */
  function initializeScene(){
+  physics_stats = null;
   // Check whether the browser supports WebGL. If so, instantiate the hardware accelerated
   // WebGL renderer. For antialiasing, we have to enable it. The canvas renderer uses
   // antialiasing by default.
@@ -53,21 +52,8 @@ renderScene();
 
   // Create the scene, in which all objects are stored (e. g. camera, lights,
   // geometries, ...)
-  scene = new THREE.Scene();
-
-
-var collision_config = new Bullet.CollisionConfiguration();
-var dispatcher = new Bullet.Dispatcher(collision_config),
-  worldAabbMin = new Vecmath.Vec3(-10000, -10000, -10000),
-  worldAabbMax = new Vecmath.Vec3(10000, 10000, 10000);
-        
-var overlappingPairCache = new Bullet.BroadphaseInterface(
-  worldAabbMin, worldAabbMax, 0xfffe, 0xffff, 16384, null),
-  constraintSolver = new Bullet.ConstraintSolver();
-
-dynamicsWorld = new Bullet.CollisionWorld(
-  dispatcher, overlappingPairCache, constraintSolver, collision_config);
-  dynamicsWorld.setGravity(new Vecmath.Vec3(0, -30, 0));
+  scene = new Physijs.Scene({ fixedTimeStep: 1 / 120 });
+  scene.setGravity(new THREE.Vector3( 0, -30, 0 ));
 
 
   camera = new THREE.PerspectiveCamera(45, canvasWidth / canvasHeight, 0.05, 300);
@@ -75,50 +61,55 @@ dynamicsWorld = new Bullet.CollisionWorld(
   camera.rotation.order = "YXZ";
   camera.lookAt(scene.position);
   scene.add(camera);
+  // directional light
+  var dir_light = new THREE.DirectionalLight( 0xFFFFFF );
+  dir_light.position.set( 20, 30, -5 );
+  dir_light.target.position.copy( scene.position );
+  dir_light.castShadow = true;
+  dir_light.shadowCameraLeft = -30;
+  dir_light.shadowCameraTop = -30;
+  dir_light.shadowCameraRight = 30;
+  dir_light.shadowCameraBottom = 30;
+  dir_light.shadowCameraNear = 20;
+  dir_light.shadowCameraFar = 200;
+  dir_light.shadowBias = -.001
+  dir_light.shadowMapWidth = dir_light.shadowMapHeight = 2048;
+  dir_light.shadowDarkness = .5;
+  scene.add( dir_light );
+
+  block_material = Physijs.createMaterial(
+    new THREE.MeshLambertMaterial({ map: THREE.ImageUtils.loadTexture( '../textures/terrain.png' ), ambient: 0xFFFFFF }),
+    .4, // medium friction
+    .4 // medium restitution
+  );
+
 
   // by 1.5 on the x axis and by 4 on the z axis and add the mesh to the scene.
   fiter = PinaCollada('fighterMrk1', 1, 0, 1);
   callbacks[0] = function(model){
     fiter = model;
   }
-  var groundShape = new Bullet.BoxShape(new Vecmath.Vec3(200, 10, 200));
-        
-  var groundTransform = new Bullet.Transform();
-        
-  groundTransform.setIdentity();
-  
-  groundTransform.origin.set3(0,-25,0);
-  
-  var localInertia = new Vecmath.Vec3(0,0,0);
-  
-  var cInfo = new Bullet.RigidBodyConstructionInfo(0, null, groundShape, localInertia);
-  
-  var body = new Bullet.RigidBody(cInfo);
-  
-  body.setWorldTransform(groundTransform);
-  
-  dynamicsWorld.addRigidBody(body);
-
   var groundGeometry = new THREE.CubeGeometry(200,10,200);
   groundGeometry.computeFaceNormals();
-  var groundMaterial = new THREE.MeshPhongMaterial({color: 0xff0000});
+  var groundMaterial = new Physijs.createMaterial(new THREE.MeshPhongMaterial({color: 0xff0000}),
+    .9,// hight friction
+    .2); // low resitution
   groundMaterial.bumpMap    = THREE.ImageUtils.loadTexture('../textures/terrain.png')
   groundMaterial.bumpScale = 20;
-  ground = new THREE.Mesh(groundGeometry, groundMaterial)
+  ground = new Physijs.BoxMesh(groundGeometry, groundMaterial,
+    0, //mass
+    { restitution: .2, friction: .8 });
   ground.castShadow = true;
   ground.receiveShadow = true;
   console.log(ground);
   ground.position.y = -25;
   scene.add(ground);
-
-  //add light
-  light1 = new THREE.DirectionalLight(0xffffff);
-  light1.position.set(10, 10, 10).normalize();
-  light1.castShadow = true;
-  light1.shadowDarkness = 20;
-  light1.shadowCameraVisible = true;
-  light1.color.setHex(0xEDF4F5);
-  scene.add(light1);
+  var intersect_plane = new THREE.Mesh(
+    new THREE.PlaneGeometry( 150, 150 ),
+    new THREE.MeshBasicMaterial({ opacity: 0, transparent: true })
+  );
+  intersect_plane.rotation.x = Math.PI / -2;
+  scene.add( intersect_plane );
   var ambientLight = new THREE.AmbientLight(0x202020);
   scene.add(ambientLight);
 }
@@ -154,43 +145,23 @@ function PinaCollada(modelname, scale, index, subdivision) {
   } );
   return localObject;
 }
- var k = 0;
- var renderObjects = new Array(Math.pow(2,32) -1);
- var physicsObjects = new Array(Math.pow(2,32) -1);
+ var k = 0, l = 0;
  function renderScene(){
   if(fiter != null && rotate){
       k += 0.02;
     fiter.rotation.y = k;
   }
-  var t1=new Date().getTime();
-        
-  var ms = (t1 - t0);
-  t0 = t1;
-  if(k%1 = 0){
-    var groundShape = new Bullet.BoxShape(new Vecmath.Vec3(4, 1, 4));
-    var groundTransform = new Bullet.Transform();
-    groundTransform.setIdentity();
-    groundTransform.origin.set3(0, y0, 0);
-    var localInertia = new Vecmath.Vec3(0, 0, 0);
-    var mass = 2;
-    groundShape.calculateLocalInertia(mass, localInertia);
-    var cInfo = new Bullet.RigidBodyConstructionInfo(mass, null, groundShape, localInertia);
-    cInfo.linearDamping = 0.5;
-    cInfo.angularDamping = 0.5;
-    var body = new Bullet.RigidBody(cInfo);
-    body.setWorldTransform(groundTransform);
-    dynamicsWorld.addRigidBody(body);
-    var groundGeometry = new THREE.CubeGeometry(4,1,4);
-    groundGeometry.computeFaceNormals();
-    var groundMaterial = new THREE.MeshPhongMaterial({color: 0xff0000});
-    ground = new THREE.Mesh(groundGeometry, groundMaterial)
-    ground.castShadow = true;
-    ground.receiveShadow = true;
-    ground.position.y = 0;
-    scene.add(ground);
-    console.log(body);
+  l++;
+  if(l === 100){
+    l = 0;
+    block_geometry = new THREE.CubeGeometry( 4, 4, 4 );
+    block = new Physijs.BoxMesh( block_geometry, block_material );
+    block.position.y = 0;
+    block.receiveShadow = true;
+    block.castShadow = true;
+    scene.add( block );
   }
-  dynamicsWorld.stepSimulation1(ms / 1000);
+  scene.simulate();
   renderer.render(scene, camera);
 }
 function callback(index, object){
