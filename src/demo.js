@@ -7,6 +7,7 @@ var models = new Array(Math.pow(2, 32)-1);
 var callbacks = new Array(Math.pow(2, 32)-1);
 var ground;
 var block_material;
+var objectGeometry;
 
 // Initialize the scene
 initializeScene();
@@ -53,10 +54,10 @@ renderScene();
   // Create the scene, in which all objects are stored (e. g. camera, lights,
   // geometries, ...)
   scene = new Physijs.Scene({ fixedTimeStep: 1 / 120 });
-  scene.setGravity(new THREE.Vector3( 0, -30, 0 ));
+  scene.setGravity(new THREE.Vector3( 0, -60, 0 ));
 
 
-  camera = new THREE.PerspectiveCamera(45, canvasWidth / canvasHeight, 0.05, 300);
+  camera = new THREE.PerspectiveCamera(45, canvasWidth / canvasHeight, 0.05, 1000);
   camera.position.set(0, 0, 10);
   camera.rotation.order = "YXZ";
   camera.lookAt(scene.position);
@@ -77,19 +78,19 @@ renderScene();
   dir_light.shadowDarkness = .5;
   scene.add( dir_light );
 
-  block_material = Physijs.createMaterial(
-    new THREE.MeshLambertMaterial({ map: THREE.ImageUtils.loadTexture( '../textures/terrain.png' ), ambient: 0xFFFFFF }),
-    .4, // medium friction
-    .4 // medium restitution
-  );
-
+  
 
   // by 1.5 on the x axis and by 4 on the z axis and add the mesh to the scene.
-  fiter = PinaCollada('fighterMrk1', 1, 0, 1);
-  callbacks[0] = function(model){
+  fiter = PinaCollada('fighterMrk1', 1, 0, 1, true);
+  callbacks[0] = function(model, geometry){
     fiter = model;
+    fiter.name = "ground";
   }
-  var groundGeometry = new THREE.CubeGeometry(200,10,200);
+  var none = PinaCollada('fighterMrk1', 1, 1, 0, false);
+  callbacks[1] = function(model, geometry){
+    objectGeometry = geometry;
+  }
+  var groundGeometry = new THREE.CubeGeometry(500,30,500);
   groundGeometry.computeFaceNormals();
   var groundMaterial = new Physijs.createMaterial(new THREE.MeshPhongMaterial({color: 0xff0000}),
     .9,// hight friction
@@ -101,9 +102,10 @@ renderScene();
     { restitution: .2, friction: .8 });
   ground.castShadow = true;
   ground.receiveShadow = true;
-  console.log(ground);
   ground.position.y = -25;
+  ground.name = "ground";
   scene.add(ground);
+  generate();
   var intersect_plane = new THREE.Mesh(
     new THREE.PlaneGeometry( 150, 150 ),
     new THREE.MeshBasicMaterial({ opacity: 0, transparent: true })
@@ -113,14 +115,13 @@ renderScene();
   var ambientLight = new THREE.AmbientLight(0x202020);
   scene.add(ambientLight);
 }
-function PinaCollada(modelname, scale, index, subdivision) {
+function PinaCollada(modelname, scale, index, subdivision, shouldAdd) {
   var manager = new THREE.LoadingManager();
   var loader = new THREE.OBJLoader(manager);
   var localObject;
   loader.load( '../models/'+modelname+'.obj', function colladaReady( object ) {
     object2 = object;
     var geometry = object[1][0];
-    console.log(geometry);
 
     var modifier = new THREE.SubdivisionModifier(subdivision);
     modifier.modify( geometry );
@@ -137,11 +138,12 @@ function PinaCollada(modelname, scale, index, subdivision) {
     material.specular  = new THREE.Color('grey');
     material.shading = THREE.SmoothShading;
     var mesh = new THREE.Mesh( geometry, material);
-    scene.add( mesh );
+    if(shouldAdd)
+      scene.add( mesh );
     mesh.scale.x = mesh.scale.y = mesh.scale.z = scale;
     mesh.updateMatrix();
     models[index] = mesh;
-    callback(index, mesh);
+    callback(index, mesh, geometry);
   } );
   return localObject;
 }
@@ -151,21 +153,47 @@ function PinaCollada(modelname, scale, index, subdivision) {
       k += 0.02;
     fiter.rotation.y = k;
   }
-  l++;
-  if(l === 100){
-    l = 0;
-    block_geometry = new THREE.CubeGeometry( 4, 4, 4 );
-    block = new Physijs.BoxMesh( block_geometry, block_material );
-    block.position.y = 0;
-    block.receiveShadow = true;
-    block.castShadow = true;
-    scene.add( block );
-  }
   scene.simulate();
   renderer.render(scene, camera);
 }
-function callback(index, object){
-  callbacks[index](object);
+function callback(index, object, geometry){
+  callbacks[index](object, geometry);
+}
+function reset(){
+  for(var i = 1; i<scene.__objectsAdded.length; i++){
+    if(scene.__objectsAdded[i].name !== "ground"){
+      scene.remove(scene.__objectsAdded[i]);
+    }
+  }
+  for(var i = 1; i<scene.__objects.length; i++){
+    if(scene.__objects[i].name !== "ground"){
+      scene.remove(scene.__objects[i]);
+    }
+  }
+  generate();
+  return true;
+}
+function generate(){
+  for(var i = 0; i<5; i++){
+    for(var h = 0; h<5; h++){
+      for(var o = 0; o<5; o++){
+        var boxg = new THREE.CubeGeometry(2,2,2);
+        boxg.computeFaceNormals();
+        objectMat = Physijs.createMaterial(
+          new THREE.MeshLambertMaterial({color: '#1166bb', emissive: '#111111'}),
+          .4, // medium friction
+          .4 // medium restitution
+        );
+        obj = new Physijs.BoxMesh( boxg, objectMat );
+        obj.position.x = -5 + i*2;
+        obj.position.y = -8 + o*2;
+        obj.position.z = -5 + h*2;
+        obj.receiveShadow = true;
+        obj.castShadow = true;
+        scene.add( obj );
+      }
+    }
+  }
 }
 function loadShader(url) {
   var req = new XMLHttpRequest();

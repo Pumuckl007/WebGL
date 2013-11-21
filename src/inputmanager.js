@@ -15,6 +15,7 @@ function init(){
         camera.position.x -= x;
         camera.position.y -= y;
         camera.position.z -= z;
+        document.getElementById('engien').play();
       }
       if(event.keyCode == 68) {
         var corretion = (Math.PI/2);
@@ -24,6 +25,7 @@ function init(){
         camera.position.x += x;
         camera.position.y += y;
         camera.position.z += z;
+        document.getElementById('engien').play();
       }
       if(event.keyCode == 87) {
         var corretion = (Math.PI/2);
@@ -33,6 +35,7 @@ function init(){
         camera.position.x -= x;
         camera.position.y -= y;
         camera.position.z -= z;
+        document.getElementById('engien').play();
       }
       if(event.keyCode == 83) {
         var corretion = (Math.PI/2);
@@ -42,8 +45,35 @@ function init(){
         camera.position.x += x;
         camera.position.y += y;
         camera.position.z += z;
+        document.getElementById('engien').play();
       }
-      document.getElementById('engien').play();
+      if(event.keyCode === 70){
+        objectMat = Physijs.createMaterial(
+          new THREE.MeshLambertMaterial({ map: THREE.ImageUtils.loadTexture( '../textures/terrain.png' ), ambient: 0xFFFFFF }),
+          .4, // medium friction
+          .4 // medium restitution
+        );
+        obj = new Physijs.ConvexMesh( objectGeometry, objectMat );
+        obj.mass = 2000;
+        obj.position.y = 0;
+        obj.receiveShadow = true;
+        obj.castShadow = true;
+        obj.position.set(camera.position.x, camera.position.y, camera.position.z);
+        obj.rotation.order = "YXZ";
+        obj.rotation.y = camera.rotation.y + Math.PI/2;
+        obj.rotation.z = camera.rotation.x;
+        scene.add( obj );
+        var corretion = (Math.PI/2);
+        var x = -1 * Math.cos(-(camera.rotation.y) + corretion) * Math.sin(-(camera.rotation.x) + corretion);
+        var z = -1 * Math.sin(-(camera.rotation.y) + corretion) * Math.sin(-(camera.rotation.x) + corretion);
+        var y = Math.cos((camera.rotation.x) + corretion);
+        var vec = new THREE.Vector3(x * 100,-y * 100,z * 100);
+        obj.setLinearVelocity(vec);
+        obj.setDamping(0.001, 0.1);
+      }
+      if(event.keyCode === 82){
+        reset();
+      }
     });
     document.addEventListener("click", function (e) {
     document.getElementById("WebGLCanvas").requestPointerLock = document.getElementById("WebGLCanvas").requestPointerLock ||
