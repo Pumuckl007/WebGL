@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WebGL Demo</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="../css/resets.css"></style>
+    <link rel="stylesheet" href="../css/global.css"></style>
+    <script src="../src/three.js"></script>
+    <script src="../src/Face4.js"></script>
+    <script src="../src/SubdivisionModifier.js"></script>
+    <script src="../src/OBJLoader.js"></script>
+    <script src="../src/physi.js"></script>
+    <script type="text/javascript">
+        
+      'use strict';
+
+      Physijs.scripts.worker = '../src/physijs_worker.js';
+      Physijs.scripts.ammo = '../src/ammo.js';
+    </script>
+  </head>
+  <body>
+    <div class = "webglcanvas" id="WebGLCanvas"></div>
+    <script src="../src/demo.js"></script>
+    <script src="../src/inputmanager.js"></script>
+    <!-- Sounds -->
+    <audio id="engien" src="../sounds/engien.wav" preload="auto"></audio>
+  </body>
+</html>
